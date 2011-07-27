@@ -2,14 +2,14 @@
 <?php
 /**
  * @author Alexander Koleda <alexander.koleda@gmail.com>
- * @version 0.01
+ * @version 0.02
  * @package BEM
  */
 if (count($argv) < 3) {  
   print "Анализироване и создание в автоматическом режиме bemdecl.js файла.\n";
   print "Параметры: " 
   . $argv[0] . " имя_html_файла имя_bemdecl.js_файла [путь_levels]\n\n";
-  print "Если путь_levels опущен, то bem-сущности создаваться не будут.\n";
+  print "Если путь_levels пропущен, то bem-сущности создаваться не будут.\n";
   exit();
 }
 define('BLOCK', 1);
@@ -73,19 +73,27 @@ export($outarr, $argv[2]);
  * @param type $modval 
  */
 function bemCreate($level, $block, $elem=null, $mod=null, $modval=null) {
-    if ($level == '') return;
+    if ($level == '') return;    
+    $fileNameExist = ''; // Будет содержать имя css-файла, чтобы файл не затереть
     $command = 'bem create ';
       if (!$elem && !$mod) {
-          $command .= 'block ' . $block;    
+          $command .= 'block ' . $block;
+          $fileNameExist = $block . '/' . $block;
       } else if (!$mod) {
-          $command .= 'elem ' . $elem . ' -b ' . $block;    
+          $command .= 'elem ' . $elem . ' -b ' . $block;
+          $fileNameExist = $block . '/__' . $elem . '/' . $block . '__' . $elem;
       } else if (!$elem) {
           $command .= 'mod -v ' . $modval . ' ' . $mod. ' -b ' . $block;
+          $fileNameExist = $block . '/_' . $mod . '/' . $block . '_' . $mod . '_' . $modval;
       } else {
           $command .= 'mod -e ' . $elem . ' -v ' . $modval . ' ' . $mod . ' -b ' . $block;
+          $fileNameExist = $block . '/__' . $elem . '/_' . $mod . '/' . $block . '__' . $elem . '_' . $mod . '_' . $modval;
       }
-      $command .= ' -l ' . $level . ' -t css';
-      exec($command);  
+      $fileNameExist = $level . '/' . $fileNameExist . '.css';
+      if (!file_exists($fileNameExist)) {
+        $command .= ' -l ' . $level . ' -t css';        
+        exec($command);       
+      }  
 }
 
 /**
